@@ -1,12 +1,13 @@
 """
 Démo RAG en ligne — Streamlit.
-Pipeline : chunking -> vectorisation TF-IDF -> recherche par similarité.
+Pipeline : ingestion (PDF ou texte) -> chunking -> vectorisation TF-IDF -> recherche par similarité.
 100% gratuit, aucune clé, aucun cloud payant.
 """
 
 import re
 
 import streamlit as st
+from pypdf import PdfReader
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -30,14 +31,38 @@ def split_chunks(text):
     return [p.strip() for p in parts if len(p.strip()) > 20]
 
 
+def read_pdf(uploaded_file):
+    reader = PdfReader(uploaded_file)
+    text = ""
+    for page in reader.pages:
+        page_text = page.extract_text() or ""
+        text += page_text + "\n"
+    return text
+
+
 st.title("🤖 Démo RAG — Recherche vectorielle")
-st.caption("Pipeline RAG : chunking → embeddings → recherche par similarité. "
+st.caption("Pipeline RAG : ingestion → chunking → embeddings → recherche par similarité. "
            "Version production (AWS Bedrock + OpenSearch) sur mon GitHub.")
 
-st.subheader("1. Le document")
-doc = st.text_area("Texte de la base de connaissances :", value=DEFAULT_DOC, height=200)
+st.subheader("1. La base de connaissances")
 
-chunks = split_chunks(doc)
+tab_pdf, tab_texte = st.tabs(["📄 Charger un PDF", "✍️ Coller du texte"])
+
+document = ""
+
+with tab_pdf:
+    uploaded = st.file_uploader("Charge un fichier PDF", type=["pdf"])
+    if uploaded is not None:
+        with st.spinner("Lecture du PDF..."):
+            document = read_pdf(uploaded)
+        st.success(f"PDF chargé : {len(document)} caractères extraits.")
+
+with tab_texte:
+    pasted = st.text_area("Ou colle ton texte ici :", value=DEFAULT_DOC, height=200)
+    if not document:
+        document = pasted
+
+chunks = split_chunks(document)
 st.info(f"Document découpé en {len(chunks)} chunks.")
 
 if chunks:
@@ -54,7 +79,8 @@ if chunks:
 
         best = top_indices[0]
         if similarities[best] < 0.05:
-            st.warning("Aucun passage pertinent trouvé dans le document.")
+            st.warning("Aucun passage pertinent trouvé dans le document. "
+                       "C'est le principe du RAG : il ne répond que sur ce qu'il connaît, il n'invente pas.")
         else:
             st.subheader("💬 Réponse")
             st.success(chunks[best])
@@ -64,3 +90,5 @@ if chunks:
                     st.markdown(f"**[{rank}] Score de similarité : {similarities[i]:.3f}**")
                     st.write(chunks[i])
                     st.divider()
+else:
+    st.warning("Charge un PDF ou colle du texte pour commencer.")
