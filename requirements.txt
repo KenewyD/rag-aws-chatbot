@@ -1,3 +1,5 @@
 streamlit
 scikit-learn
 pypdf
+pandas
+numpy
