@@ -7,7 +7,9 @@ uniquement sur le contenu ingéré, avec citation des sources.
 Pipeline complet : **ingestion → chunking → embeddings (Bedrock) → indexation vectorielle (OpenSearch) → retrieval → génération (Bedrock)**.
 ## 🚀 Démo en ligne
 
-👉 **[Tester la démo RAG en direct](https://rag-aws-chatbot-btsheu269me4mhramwowyy.streamlit.app/)**
+👉 *## Démo
+
+🔗 [Tester l'application en ligne](https://rag-aws-chatbot-oyuq73wnst7vpbbhfj98eq.streamlit.app/)**
 
 Démo interactive du pipeline RAG (chunking → embeddings → recherche vectorielle par similarité).
 Chargez un PDF ou collez un texte, puis posez vos questions — aucune installation requise.
